@@ -73,19 +73,8 @@ static inline int ncam_android_pclose(FILE *f)
 #undef WITH_CARDREADER
 #endif
 
-#define CARDREADER_PHOENIX    0
-#define CARDREADER_INTERNAL   0
-#define CARDREADER_STINGER    0
-#define CARDREADER_PCSC       0
-#define CARDREADER_SMART      0
-#define CARDREADER_DB2COM     0
-#define CARDREADER_SC8IN1     0
-#define CARDREADER_SMARGO     0
-#define CARDREADER_MP35       0
+#define SKIP_WEBIF_LSUSB 1
 
-#ifdef MODULE_SERIAL
-#undef MODULE_SERIAL
-#endif
 #ifdef WITH_STAPI
 #undef WITH_STAPI
 #endif
@@ -104,8 +93,9 @@ static inline int ncam_android_pclose(FILE *f)
 #ifdef WITH_GXAPI
 #undef WITH_GXAPI
 #endif
-
-#define SKIP_WEBIF_LSUSB 1
+#ifdef WITH_WI
+#undef WITH_WI
+#endif
 
 #ifndef CS_CONFDIR
 #define CS_CONFDIR "/data/data/com.ncam.app/files"

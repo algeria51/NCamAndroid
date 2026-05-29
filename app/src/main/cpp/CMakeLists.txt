@@ -19,12 +19,6 @@ add_compile_definitions(
     MODULE_SERIAL=0
     LCDSUPPORT=0
     LEDSUPPORT=0
-    WITH_STAPI=0
-    WITH_STAPI5=0
-    WITH_COOLAPI=0
-    WITH_COOLAPI2=0
-    WITH_AZBOX=0
-    WITH_GXAPI=0
     WITH_EMU=1
     WITH_SOFTCAM=1
     MODULE_CAMD35=1
@@ -110,7 +104,6 @@ add_library(ncam SHARED
     ${NCAM_READERS}
     ${NCAM_CSCTAPI}
     ${NCAM_CSCRYPT}
-    ${NCAM_TOMMY}
     ${NCAM_EXTRA}
 )
 
