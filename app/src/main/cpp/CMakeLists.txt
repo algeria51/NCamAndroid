@@ -81,6 +81,10 @@ set(NCAM_EXTRA
     ${NCAM_SRC}/ncam.c
 )
 
+# ncam-signing.c requires OpenSSL (X509, BIO, etc.) — excluded and replaced
+# by android_signing_stub.c which provides safe no-op implementations.
+list(FILTER NCAM_CORE   EXCLUDE REGEX "ncam-signing\\.c$")
+
 list(FILTER NCAM_MODULES EXCLUDE REGEX "module-dvbapi-stapi.*\\.c$")
 list(FILTER NCAM_MODULES EXCLUDE REGEX "module-dvbapi-coolapi.*\\.c$")
 list(FILTER NCAM_MODULES EXCLUDE REGEX "module-dvbapi-azbox.*\\.c$")
@@ -97,6 +101,7 @@ list(FILTER NCAM_CSCTAPI  EXCLUDE REGEX "ifd_pcsc.*\\.c$")
 add_library(ncam SHARED
     ${CMAKE_SOURCE_DIR}/jni_bridge.cpp
     ${CMAKE_SOURCE_DIR}/android_stubs.c
+    ${CMAKE_SOURCE_DIR}/android_signing_stub.c
     ${NCAM_CORE}
     ${NCAM_MODULES}
     ${NCAM_READERS}
