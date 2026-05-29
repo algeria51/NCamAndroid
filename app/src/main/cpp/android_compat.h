@@ -5,16 +5,25 @@
 #include <android/log.h>
 #include <errno.h>
 #include <stdio.h>
+// Pull in unistd.h BEFORE defining any macros that shadow its symbols.
+// NDK 25+ declares fork() and daemon() in unistd.h; if our macros are
+// defined first the compiler sees a function-like macro with the wrong
+// arity when it parses the header declarations.
+#include <unistd.h>
 
 #define ANDROID_LOG_TAG "NCam"
 #define cs_android_log(...) __android_log_print(ANDROID_LOG_DEBUG, ANDROID_LOG_TAG, __VA_ARGS__)
 
-#ifndef __uClinux__
+// ── fork / daemon ─────────────────────────────────────────────────────────
+// Undefine the real symbols first so our zero-returning macros don't clash
+// with the already-parsed declarations in unistd.h.
+#undef fork
+#undef daemon
 #define fork()          0
-#endif
 #define do_daemon(a,b)  0
 #define daemon(a,b)     0
 
+// ── system / popen ────────────────────────────────────────────────────────
 static inline int ncam_android_system(const char *cmd)
 {
     (void)cmd;
@@ -34,6 +43,9 @@ static inline int ncam_android_pclose(FILE *f)
     (void)f;
     return 0;
 }
+#undef system
+#undef popen
+#undef pclose
 #define system(x)   ncam_android_system(x)
 #define popen(x,y)  ncam_android_popen(x,y)
 #define pclose(x)   ncam_android_pclose(x)
