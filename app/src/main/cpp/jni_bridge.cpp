@@ -37,8 +37,8 @@ static void *ncam_thread_func(void *arg)
     if (g_jvm && g_callback) {
         JNIEnv *env = nullptr;
         if (g_jvm->AttachCurrentThread(&env, nullptr) == 0) {
-            jclass   cls = env->GetObjectClass(g_callback);
-            jmethodID m  = env->GetMethodID(cls, "onNcamStopped", "(I)V");
+            jclass    cls = env->GetObjectClass(g_callback);
+            jmethodID m   = env->GetMethodID(cls, "onNcamStopped", "(I)V");
             if (m) env->CallVoidMethod(g_callback, m, (jint)ret);
             g_jvm->DetachCurrentThread();
         }
@@ -106,7 +106,6 @@ Java_com_ncam_app_NCamJNI_stopNCam(JNIEnv *, jobject)
     if (!g_ncam_thread) return;
     LOGI("Requesting NCam stop");
     exit_oscam = 1;
-    // give ncam a moment to exit cleanly
     usleep(500000);
     g_ncam_thread = 0;
 }

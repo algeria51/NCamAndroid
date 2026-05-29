@@ -13,11 +13,11 @@ import java.io.File
 class NCamService : Service(), NCamJNI.Callback {
 
     companion object {
-        const val TAG            = "NCamService"
-        const val CHANNEL_ID     = "ncam_channel"
-        const val NOTIF_ID       = 1001
-        const val ACTION_START   = "com.ncam.app.START"
-        const val ACTION_STOP    = "com.ncam.app.STOP"
+        const val TAG          = "NCamService"
+        const val CHANNEL_ID   = "ncam_channel"
+        const val NOTIF_ID     = 1001
+        const val ACTION_START = "com.ncam.app.START"
+        const val ACTION_STOP  = "com.ncam.app.STOP"
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -40,12 +40,9 @@ class NCamService : Service(), NCamJNI.Callback {
             Log.i(TAG, "Already running")
             return
         }
-
         val configDir = File(filesDir, "ncam").also { it.mkdirs() }
         copyDefaultConfigsIfNeeded(configDir)
-
         startForeground(NOTIF_ID, buildNotification("NCam running…"))
-
         val rc = NCamJNI.startNCam(configDir.absolutePath, this)
         if (rc != 0) {
             Log.e(TAG, "startNCam returned $rc")
@@ -69,8 +66,6 @@ class NCamService : Service(), NCamJNI.Callback {
         if (NCamJNI.isRunning()) NCamJNI.stopNCam()
         super.onDestroy()
     }
-
-    // ── helpers ──────────────────────────────────────────────────
 
     private fun copyDefaultConfigsIfNeeded(dir: File) {
         val conf = File(dir, "ncam.conf")
