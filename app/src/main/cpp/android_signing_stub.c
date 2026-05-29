@@ -5,6 +5,9 @@
 #include <stdlib.h>
 #include "ncam/ncam-signing.h"
 
+const char *ncam_version = "Android";
+const char *config_mak   = "Android build";
+
 struct o_sign_info osi;
 
 bool init_signing_info(const char *binfile)

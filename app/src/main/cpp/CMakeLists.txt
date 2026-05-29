@@ -62,6 +62,7 @@ include_directories(
     ${NCAM_SRC}/extapi
     ${NCAM_SRC}/minilzo
     ${NCAM_SRC}/tommyDS_hashlin
+    ${NCAM_SRC}/webif
     ${CMAKE_SOURCE_DIR}
 )
 
@@ -75,7 +76,7 @@ file(GLOB NCAM_CSCTAPI ${NCAM_SRC}/csctapi/*.c)
 set(NCAM_EXTRA
     ${NCAM_SRC}/cardlist.c
     ${NCAM_SRC}/minilzo/minilzo.c
-    ${NCAM_SRC}/ncam.c
+    ${NCAM_SRC}/webif/pages.c
 )
 
 # ncam-signing.c requires OpenSSL (X509, BIO, etc.) — excluded and replaced
