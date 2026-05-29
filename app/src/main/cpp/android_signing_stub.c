@@ -1,13 +1,9 @@
-// Stub for ncam-signing.c — replaces OpenSSL-dependent signing on Android.
-// ncam-signing.c is excluded from the build via CMakeLists.txt.
-// All callers in ncam.c check osi.is_verified and print osi.* fields;
-// we return a safe "not verified" state so the daemon starts normally.
-
 #ifdef __ANDROID__
 
-#include "ncam/ncam-signing.h"
+#include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
+#include "ncam/ncam-signing.h"
 
 struct o_sign_info osi;
 
@@ -25,10 +21,9 @@ bool init_signing_info(const char *binfile)
     osi.hash_digest_size     = 0;
     osi.hash_size            = 0;
 
-    // Provide non-NULL strings so callers can safely print them.
     osi.cert_serial      = strdup("n/a");
     osi.cert_fingerprint = strdup("n/a");
-    osi.cert_subject     = strdup("Android build — signing disabled");
+    osi.cert_subject     = strdup("Android build - signing disabled");
     osi.cert_issuer      = strdup("n/a");
     osi.pkey_type        = strdup("n/a");
     osi.hash_sha256      = strdup("n/a");
@@ -37,7 +32,7 @@ bool init_signing_info(const char *binfile)
     if (binfile)
         strncpy(osi.resolved_binfile, binfile, sizeof(osi.resolved_binfile) - 1);
 
-    return true;  // return true so ncam.c does not call cs_exit_ncam()
+    return true;
 }
 
 #endif // __ANDROID__
