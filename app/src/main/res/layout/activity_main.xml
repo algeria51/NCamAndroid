@@ -13,7 +13,16 @@
         android:layout_height="wrap_content"
         android:textSize="18sp"
         android:text="NCam"
-        android:layout_marginBottom="32dp"/>
+        android:layout_marginBottom="8dp"/>
+
+    <TextView
+        android:id="@+id/tvUrl"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="14sp"
+        android:textColor="#1565C0"
+        android:layout_marginBottom="24dp"
+        android:text=""/>
 
     <Button
         android:id="@+id/btnStart"
@@ -26,6 +35,22 @@
         android:id="@+id/btnStop"
         android:layout_width="200dp"
         android:layout_height="wrap_content"
-        android:text="Stop NCam"/>
+        android:text="Stop NCam"
+        android:layout_marginBottom="24dp"/>
+
+    <Button
+        android:id="@+id/btnOpenBrowser"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:text="Open WebIF"
+        android:enabled="false"
+        android:layout_marginBottom="12dp"/>
+
+    <Button
+        android:id="@+id/btnCopyUrl"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:text="Copy URL"
+        android:enabled="false"/>
 
 </LinearLayout>

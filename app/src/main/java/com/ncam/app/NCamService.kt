@@ -18,6 +18,7 @@ class NCamService : Service(), NCamJNI.Callback {
         const val NOTIF_ID     = 1001
         const val ACTION_START = "com.ncam.app.START"
         const val ACTION_STOP  = "com.ncam.app.STOP"
+        const val HTTP_PORT    = 8181
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -42,7 +43,7 @@ class NCamService : Service(), NCamJNI.Callback {
         }
         val configDir = File(filesDir, "ncam").also { it.mkdirs() }
         copyDefaultConfigsIfNeeded(configDir)
-        startForeground(NOTIF_ID, buildNotification("NCam running…"))
+        startForeground(NOTIF_ID, buildNotification("NCam running on port $HTTP_PORT"))
         val rc = NCamJNI.startNCam(configDir.absolutePath, this)
         if (rc != 0) {
             Log.e(TAG, "startNCam returned $rc")
