@@ -107,13 +107,13 @@ class MainActivity : AppCompatActivity() {
         Thread {
             try {
                 logcatProcess = Runtime.getRuntime().exec(
-                    arrayOf("logcat", "-v", "time", "-s", "NCam-JNI:*", "NCamService:*")
+                    arrayOf("logcat", "-v", "time", "-s", "NCam:*", "NCam-JNI:*", "NCamService:*")
                 )
                 logcatProcess!!.inputStream.bufferedReader().forEachLine { line ->
                     appendLog(line)
                 }
             } catch (e: Exception) {
-                appendLog("Logcat error: ${e.message}")
+                Log.e("MainActivity", "logcat error", e)
             }
         }.also { it.isDaemon = true }.start()
     }

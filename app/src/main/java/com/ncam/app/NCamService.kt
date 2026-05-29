@@ -13,12 +13,12 @@ import java.io.File
 class NCamService : Service(), NCamJNI.Callback {
 
     companion object {
-        const val TAG            = "NCamService"
-        const val CHANNEL_ID     = "ncam_channel"
-        const val NOTIF_ID       = 1001
-        const val ACTION_START   = "com.ncam.app.START"
-        const val ACTION_STOP    = "com.ncam.app.STOP"
-        const val DEFAULT_PORT   = 8181
+        const val TAG          = "NCamService"
+        const val CHANNEL_ID   = "ncam_channel"
+        const val NOTIF_ID     = 1001
+        const val ACTION_START = "com.ncam.app.START"
+        const val ACTION_STOP  = "com.ncam.app.STOP"
+        const val DEFAULT_PORT = 8181
 
         fun readHttpPort(configDir: File): Int {
             return try {
@@ -68,13 +68,15 @@ class NCamService : Service(), NCamJNI.Callback {
 
     private fun stopNcam() {
         NCamJNI.stopNCam()
-        if (android.os.Build.VERSION.SDK_INT >= 24) stopForeground(android.app.Service.STOP_FOREGROUND_REMOVE) else @Suppress("DEPRECATION") stopForeground(true)
+        if (Build.VERSION.SDK_INT >= 24) stopForeground(STOP_FOREGROUND_REMOVE)
+        else @Suppress("DEPRECATION") stopForeground(true)
         stopSelf()
     }
 
     override fun onNcamStopped(exitCode: Int) {
         Log.i(TAG, "NCam stopped, exit=$exitCode")
-        if (android.os.Build.VERSION.SDK_INT >= 24) stopForeground(android.app.Service.STOP_FOREGROUND_REMOVE) else @Suppress("DEPRECATION") stopForeground(true)
+        if (Build.VERSION.SDK_INT >= 24) stopForeground(STOP_FOREGROUND_REMOVE)
+        else @Suppress("DEPRECATION") stopForeground(true)
         stopSelf()
     }
 

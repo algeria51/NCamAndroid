@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include <signal.h>
 
-#define TAG "NCam-JNI"
+#define TAG  "NCam-JNI"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO,  TAG, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__)
 
@@ -15,9 +15,12 @@ extern "C" {
     extern volatile int exit_oscam;
 }
 
-static pthread_t  g_ncam_thread = 0;
-static JavaVM    *g_jvm         = nullptr;
-static jobject    g_callback    = nullptr;
+static pthread_t  g_ncam_thread   = 0;
+static pthread_t  g_stdout_thread = 0;
+static JavaVM    *g_jvm           = nullptr;
+static jobject    g_callback      = nullptr;
+static int        g_pipe_fds[2]   = {-1, -1};
+static int        g_saved_stdout  = -1;
 
 struct NcamArgs {
     int   argc;
@@ -27,12 +30,59 @@ struct NcamArgs {
 
 static NcamArgs g_args;
 
+static void *stdout_reader_func(void *)
+{
+    char line[4096];
+    int  pos = 0;
+    char ch;
+    while (true) {
+        ssize_t n = read(g_pipe_fds[0], &ch, 1);
+        if (n <= 0) break;
+        if (ch == '\n' || pos >= (int)sizeof(line) - 1) {
+            line[pos] = '\0';
+            if (pos > 0)
+                __android_log_print(ANDROID_LOG_DEBUG, "NCam", "%s", line);
+            pos = 0;
+        } else {
+            line[pos++] = ch;
+        }
+    }
+    return nullptr;
+}
+
+static void redirect_stdout()
+{
+    if (pipe(g_pipe_fds) != 0) return;
+    g_saved_stdout = dup(STDOUT_FILENO);
+    dup2(g_pipe_fds[1], STDOUT_FILENO);
+    close(g_pipe_fds[1]);
+    g_pipe_fds[1] = -1;
+    pthread_create(&g_stdout_thread, nullptr, stdout_reader_func, nullptr);
+    pthread_detach(g_stdout_thread);
+}
+
+static void restore_stdout()
+{
+    if (g_saved_stdout >= 0) {
+        dup2(g_saved_stdout, STDOUT_FILENO);
+        close(g_saved_stdout);
+        g_saved_stdout = -1;
+    }
+    if (g_pipe_fds[0] >= 0) {
+        close(g_pipe_fds[0]);
+        g_pipe_fds[0] = -1;
+    }
+    g_stdout_thread = 0;
+}
+
 static void *ncam_thread_func(void *arg)
 {
     NcamArgs *a = (NcamArgs *)arg;
     LOGI("NCam thread starting");
     int ret = main(a->argc, a->argv);
     LOGI("NCam thread exited with %d", ret);
+
+    restore_stdout();
 
     if (g_jvm && g_callback) {
         JNIEnv *env = nullptr;
@@ -43,6 +93,7 @@ static void *ncam_thread_func(void *arg)
             g_jvm->DetachCurrentThread();
         }
     }
+    g_ncam_thread = 0;
     return nullptr;
 }
 
@@ -86,11 +137,14 @@ Java_com_ncam_app_NCamJNI_startNCam(JNIEnv *env, jobject,
         g_callback = env->NewGlobalRef(jCallback);
     }
 
+    redirect_stdout();
+
     exit_oscam = 0;
 
     int rc = pthread_create(&g_ncam_thread, nullptr, ncam_thread_func, &g_args);
     if (rc != 0) {
         LOGE("pthread_create failed: %d", rc);
+        restore_stdout();
         g_ncam_thread = 0;
         return -1;
     }
