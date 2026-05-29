@@ -10,6 +10,14 @@
 // defined first the compiler sees a function-like macro with the wrong
 // arity when it parses the header declarations.
 #include <unistd.h>
+#include <pthread.h>
+#include <signal.h>
+#include <netdb.h>
+#include <limits.h>
+#include <dirent.h>
+#include <stdint.h>
+
+typedef unsigned int uint;
 
 #define ANDROID_LOG_TAG "NCam"
 #define cs_android_log(...) __android_log_print(ANDROID_LOG_DEBUG, ANDROID_LOG_TAG, __VA_ARGS__)
