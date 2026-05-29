@@ -27,9 +27,8 @@ typedef unsigned int uint;
 // with the already-parsed declarations in unistd.h.
 #undef fork
 #undef daemon
-#define fork()          0
-#define do_daemon(a,b)  0
-#define daemon(a,b)     0
+#define fork()      0
+#define daemon(a,b) 0
 
 // ── system / popen ────────────────────────────────────────────────────────
 static inline int ncam_android_system(const char *cmd)

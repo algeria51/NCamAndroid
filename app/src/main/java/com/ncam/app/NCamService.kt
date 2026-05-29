@@ -68,13 +68,13 @@ class NCamService : Service(), NCamJNI.Callback {
 
     private fun stopNcam() {
         NCamJNI.stopNCam()
-        stopForeground(true)
+        if (android.os.Build.VERSION.SDK_INT >= 24) stopForeground(android.app.Service.STOP_FOREGROUND_REMOVE) else @Suppress("DEPRECATION") stopForeground(true)
         stopSelf()
     }
 
     override fun onNcamStopped(exitCode: Int) {
         Log.i(TAG, "NCam stopped, exit=$exitCode")
-        stopForeground(true)
+        if (android.os.Build.VERSION.SDK_INT >= 24) stopForeground(android.app.Service.STOP_FOREGROUND_REMOVE) else @Suppress("DEPRECATION") stopForeground(true)
         stopSelf()
     }
 
