@@ -6,9 +6,13 @@ set(NCAM_SRC ${CMAKE_SOURCE_DIR}/ncam)
 set(COMPAT_HEADER ${CMAKE_SOURCE_DIR}/android_compat.h)
 add_compile_options(-include ${COMPAT_HEADER})
 
+# Generate build date string (ncam.c references CS_BUILD_DATE)
+string(TIMESTAMP CS_BUILD_DATE "%d.%m.%Y %H:%M:%S")
+
 add_compile_definitions(
     __ANDROID__=1
     ANDROID_BUILD=1
+    "CS_BUILD_DATE=\"${CS_BUILD_DATE}\""
     CS_CONFDIR="/data/data/com.ncam.app/files"
     HAVE_DVBAPI=0
     WITH_CARDREADER=0
@@ -55,7 +59,6 @@ add_compile_definitions(
     READER_STREAMGUARD=1
     READER_JET=1
     READER_TONGFANG=1
-    NEED_DAEMON=0
 )
 
 include_directories(
