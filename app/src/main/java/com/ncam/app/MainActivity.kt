@@ -5,12 +5,12 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import java.io.File
 import java.net.NetworkInterface
 
 class MainActivity : AppCompatActivity() {
@@ -26,12 +26,12 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        tvStatus      = findViewById(R.id.tvStatus)
-        tvUrl         = findViewById(R.id.tvUrl)
-        btnStart      = findViewById(R.id.btnStart)
-        btnStop       = findViewById(R.id.btnStop)
+        tvStatus       = findViewById(R.id.tvStatus)
+        tvUrl          = findViewById(R.id.tvUrl)
+        btnStart       = findViewById(R.id.btnStart)
+        btnStop        = findViewById(R.id.btnStop)
         btnOpenBrowser = findViewById(R.id.btnOpenBrowser)
-        btnCopyUrl    = findViewById(R.id.btnCopyUrl)
+        btnCopyUrl     = findViewById(R.id.btnCopyUrl)
 
         tvStatus.text = "NCam v${NCamJNI.getVersion()}"
 
@@ -69,6 +69,10 @@ class MainActivity : AppCompatActivity() {
         updateUI(NCamJNI.isRunning())
     }
 
+    private fun getConfigDir(): File = File(filesDir, "ncam")
+
+    private fun getHttpPort(): Int = NCamService.readHttpPort(getConfigDir())
+
     private fun getDeviceIp(): String {
         try {
             val interfaces = NetworkInterface.getNetworkInterfaces()
@@ -89,10 +93,7 @@ class MainActivity : AppCompatActivity() {
         return "127.0.0.1"
     }
 
-    private fun getWebifUrl(): String {
-        val ip = getDeviceIp()
-        return "http://$ip:${NCamService.HTTP_PORT}"
-    }
+    private fun getWebifUrl(): String = "http://${getDeviceIp()}:${getHttpPort()}"
 
     private fun updateUI(running: Boolean) {
         btnStart.isEnabled       = !running

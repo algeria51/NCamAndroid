@@ -13,12 +13,26 @@ import java.io.File
 class NCamService : Service(), NCamJNI.Callback {
 
     companion object {
-        const val TAG          = "NCamService"
-        const val CHANNEL_ID   = "ncam_channel"
-        const val NOTIF_ID     = 1001
-        const val ACTION_START = "com.ncam.app.START"
-        const val ACTION_STOP  = "com.ncam.app.STOP"
-        const val HTTP_PORT    = 8181
+        const val TAG            = "NCamService"
+        const val CHANNEL_ID     = "ncam_channel"
+        const val NOTIF_ID       = 1001
+        const val ACTION_START   = "com.ncam.app.START"
+        const val ACTION_STOP    = "com.ncam.app.STOP"
+        const val DEFAULT_PORT   = 8181
+
+        fun readHttpPort(configDir: File): Int {
+            return try {
+                File(configDir, "ncam.conf")
+                    .readLines()
+                    .firstOrNull { it.trimStart().startsWith("httpport") }
+                    ?.substringAfter("=")
+                    ?.trim()
+                    ?.toIntOrNull()
+                    ?: DEFAULT_PORT
+            } catch (e: Exception) {
+                DEFAULT_PORT
+            }
+        }
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -43,7 +57,8 @@ class NCamService : Service(), NCamJNI.Callback {
         }
         val configDir = File(filesDir, "ncam").also { it.mkdirs() }
         copyDefaultConfigsIfNeeded(configDir)
-        startForeground(NOTIF_ID, buildNotification("NCam running on port $HTTP_PORT"))
+        val port = readHttpPort(configDir)
+        startForeground(NOTIF_ID, buildNotification("NCam running on port $port"))
         val rc = NCamJNI.startNCam(configDir.absolutePath, this)
         if (rc != 0) {
             Log.e(TAG, "startNCam returned $rc")

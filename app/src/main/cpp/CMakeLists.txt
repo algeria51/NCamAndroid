@@ -12,6 +12,7 @@ string(TIMESTAMP CS_BUILD_DATE "%d.%m.%Y %H:%M:%S")
 add_compile_definitions(
     __ANDROID__=1
     ANDROID_BUILD=1
+    NEED_DAEMON=1
     "CS_BUILD_DATE=\"${CS_BUILD_DATE}\""
     CS_CONFDIR="/data/data/com.ncam.app/files"
     HAVE_DVBAPI=0
