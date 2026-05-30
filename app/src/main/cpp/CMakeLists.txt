@@ -71,7 +71,8 @@ file(GLOB NCAM_CORE    ${NCAM_SRC}/ncam*.c)
 file(GLOB NCAM_MODULES ${NCAM_SRC}/module-*.c)
 file(GLOB NCAM_READERS ${NCAM_SRC}/reader-*.c)
 file(GLOB NCAM_CSCRYPT ${NCAM_SRC}/cscrypt/*.c)
-file(GLOB NCAM_TOMMY   ${NCAM_SRC}/tommyDS_hashlin/*.c)file(GLOB NCAM_CSCTAPI ${NCAM_SRC}/csctapi/*.c)
+file(GLOB NCAM_TOMMY   ${NCAM_SRC}/tommyDS_hashlin/*.c)
+file(GLOB NCAM_CSCTAPI ${NCAM_SRC}/csctapi/*.c)
 
 set(NCAM_EXTRA
     ${NCAM_SRC}/cardlist.c
