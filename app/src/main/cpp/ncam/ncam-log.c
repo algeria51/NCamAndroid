@@ -1,4 +1,7 @@
 #include "globals.h"
+#ifdef __ANDROID__
+#include <android/log.h>
+#endif
 #include <syslog.h>
 #include "module-anticasc.h"
 #include "module-monitor.h"
@@ -788,7 +791,11 @@ int32_t cs_init_log(void)
 		int32_t ret = start_thread_nolog("logging", (void *)&log_list_thread, NULL, &log_thread, 0, 1);
 		if(ret)
 		{
+#ifdef __ANDROID__
+			__android_log_print(ANDROID_LOG_ERROR, "NCam", "Failed to start log thread (ret=%d), continuing anyway", ret);
+#else
 			cs_exit(1);
+#endif
 		}
 
 		logStarted = 1;

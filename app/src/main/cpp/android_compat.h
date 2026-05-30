@@ -5,10 +5,6 @@
 #include <android/log.h>
 #include <errno.h>
 #include <stdio.h>
-// Pull in unistd.h BEFORE defining any macros that shadow its symbols.
-// NDK 25+ declares fork() and daemon() in unistd.h; if our macros are
-// defined first the compiler sees a function-like macro with the wrong
-// arity when it parses the header declarations.
 #include <unistd.h>
 #include <pthread.h>
 #include <signal.h>
@@ -22,89 +18,63 @@ typedef unsigned int uint;
 #define ANDROID_LOG_TAG "NCam"
 #define cs_android_log(...) __android_log_print(ANDROID_LOG_DEBUG, ANDROID_LOG_TAG, __VA_ARGS__)
 
-// ── fork / daemon ─────────────────────────────────────────────────────────
-// Undefine the real symbols first so our zero-returning macros don't clash
-// with the already-parsed declarations in unistd.h.
+/* ── fork / daemon / do_daemon ─────────────────────────────────────────────
+ * NCam uses fork() in do_daemon() and restart_daemon(). On Android these
+ * calls are either forbidden or cause SELinux denials.
+ * - fork()      → always return 0  (child side, no parent exits)
+ * - daemon()    → no-op, return 0
+ * - do_daemon() → no-op macro (ncam.c defines a static do_daemon that calls
+ *                 fork()+setsid(); even with fork()→0, setsid() can fail
+ *                 with EPERM under strict SELinux → exit=1)
+ * We must define do_daemon BEFORE ncam.c is compiled so our macro wins.
+ */
 #undef fork
 #undef daemon
-#define fork()      0
-#define daemon(a,b) 0
+#define fork()         0
+#define daemon(a,b)    0
+#define do_daemon(a,b) 0    /* skip daemon mode entirely on Android */
 
-// ── do_daemon ─────────────────────────────────────────────────────────────
-// ncam.c defines its own static do_daemon() which calls fork() + setsid().
-// Even with fork()→0, setsid() can fail on Android (EPERM) causing exit=1.
-// We override do_daemon entirely so it's always a no-op on Android.
-// The -f flag passed by jni_bridge.cpp keeps bg=0, but this is a safety net.
-#define do_daemon(a,b) 0
-
-// ── system / popen ────────────────────────────────────────────────────────
-static inline int ncam_android_system(const char *cmd)
+/* ── system / popen ─────────────────────────────────────────────────────── */
+static inline int _ncam_system(const char *cmd)
 {
     (void)cmd;
     cs_android_log("system() blocked: %s", cmd ? cmd : "(null)");
     errno = ENOSYS;
     return -1;
 }
-static inline FILE *ncam_android_popen(const char *cmd, const char *mode)
+static inline FILE *_ncam_popen(const char *cmd, const char *mode)
 {
     (void)cmd; (void)mode;
     cs_android_log("popen() blocked: %s", cmd ? cmd : "(null)");
     errno = ENOSYS;
     return NULL;
 }
-static inline int ncam_android_pclose(FILE *f)
-{
-    (void)f;
-    return 0;
-}
+static inline int _ncam_pclose(FILE *f) { (void)f; return 0; }
 #undef system
 #undef popen
 #undef pclose
-#define system(x)   ncam_android_system(x)
-#define popen(x,y)  ncam_android_popen(x,y)
-#define pclose(x)   ncam_android_pclose(x)
+#define system(x)   _ncam_system(x)
+#define popen(x,y)  _ncam_popen(x,y)
+#define pclose(x)   _ncam_pclose(x)
 
 #define HAVE_STATIC_CRASH_HANDLER 1
-
-#ifdef LCDSUPPORT
-#undef LCDSUPPORT
-#endif
-#ifdef LEDSUPPORT
-#undef LEDSUPPORT
-#endif
-#ifdef HAVE_DVBAPI
-#undef HAVE_DVBAPI
-#endif
-#ifdef WITH_CARDREADER
-#undef WITH_CARDREADER
-#endif
-
 #define SKIP_WEBIF_LSUSB 1
 
-#ifdef WITH_STAPI
+/* Disable unsupported hardware subsystems */
+#undef LCDSUPPORT
+#undef LEDSUPPORT
+#undef HAVE_DVBAPI
+#undef WITH_CARDREADER
 #undef WITH_STAPI
-#endif
-#ifdef WITH_STAPI5
 #undef WITH_STAPI5
-#endif
-#ifdef WITH_COOLAPI
 #undef WITH_COOLAPI
-#endif
-#ifdef WITH_COOLAPI2
 #undef WITH_COOLAPI2
-#endif
-#ifdef WITH_AZBOX
 #undef WITH_AZBOX
-#endif
-#ifdef WITH_GXAPI
 #undef WITH_GXAPI
-#endif
-#ifdef WITH_WI
 #undef WITH_WI
-#endif
 
 #ifndef CS_CONFDIR
-#define CS_CONFDIR "/data/data/com.ncam.app/files"
+#define CS_CONFDIR "/data/data/com.ncam.app/files/ncam"
 #endif
 
-#endif // __ANDROID__
+#endif /* __ANDROID__ */

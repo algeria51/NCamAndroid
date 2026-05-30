@@ -639,7 +639,9 @@ static int32_t do_daemon(int32_t nochdir, int32_t noclose)
 	return (0);
 }
 #else
+#ifndef do_daemon
 #define do_daemon daemon
+#endif
 #endif
 
 /*
@@ -1286,7 +1288,12 @@ static void process_clients(void)
 	if(pipe(thread_pipe) == -1)
 	{
 		printf("cannot create pipe, errno=%d\n", errno);
+#ifdef __ANDROID__
+		exit_oscam = 1;
+		return;
+#else
 		exit(1);
+#endif
 	}
 
 	cl_size = chk_resize_cllist(&pfd, &cl_list, 0, 100);
@@ -1825,7 +1832,11 @@ int32_t main(int32_t argc, char *argv[])
 	if(pthread_key_create(&getclient, NULL))
 	{
 		fprintf(stderr, "Could not create getclient, exiting...");
+#ifdef __ANDROID__
+		return 1;
+#else
 		exit(1);
+#endif
 	}
 
 	void (*mod_def[])(struct s_module *) =
