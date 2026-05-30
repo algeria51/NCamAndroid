@@ -1,5 +1,8 @@
 #define MODULE_LOG_PREFIX "sched"  // Logging prefix for all scheduler messages
 
+#ifdef __ANDROID__
+#include "../android_compat.h"
+#endif
 #include "globals.h"
 #include "ncam-sched.h"
 #include "ncam-string.h"

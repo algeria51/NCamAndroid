@@ -1,6 +1,10 @@
 #ifndef GLOBALS_H_
 #define GLOBALS_H_
 
+#ifdef __ANDROID__
+#include "../android_compat.h"
+#endif
+
 #undef _GNU_SOURCE
 #define _GNU_SOURCE
 #include <stdlib.h>
