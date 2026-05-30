@@ -127,6 +127,7 @@ Java_com_ncam_app_NCamJNI_startNCam(JNIEnv *env, jobject,
     };
 
     push("ncam");
+    push("-f");                  // foreground mode — no daemon/fork on Android
     push("-c"); push(confdir);
     push("-t"); push(confdir);
     push("-r"); push("0");      // disable restart/fork mode

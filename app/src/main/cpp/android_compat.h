@@ -30,6 +30,13 @@ typedef unsigned int uint;
 #define fork()      0
 #define daemon(a,b) 0
 
+// ── do_daemon ─────────────────────────────────────────────────────────────
+// ncam.c defines its own static do_daemon() which calls fork() + setsid().
+// Even with fork()→0, setsid() can fail on Android (EPERM) causing exit=1.
+// We override do_daemon entirely so it's always a no-op on Android.
+// The -f flag passed by jni_bridge.cpp keeps bg=0, but this is a safety net.
+#define do_daemon(a,b) 0
+
 // ── system / popen ────────────────────────────────────────────────────────
 static inline int ncam_android_system(const char *cmd)
 {
