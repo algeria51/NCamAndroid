@@ -31,9 +31,9 @@ android {
     signingConfigs {
         release {
             storeFile     file("../ncam-release.keystore")
-            storePassword "ncam1234"
-            keyAlias      "ncam"
-            keyPassword   "ncam1234"
+            storePassword System.getenv("KEYSTORE_PASS") ?: "ncam1234"
+            keyAlias      System.getenv("KEY_ALIAS")     ?: "ncam"
+            keyPassword   System.getenv("KEY_PASS")      ?: "ncam1234"
         }
     }
 
@@ -51,7 +51,6 @@ android {
         }
         debug {
             jniDebuggable true
-            signingConfig signingConfigs.release
         }
     }
 
