@@ -175,7 +175,7 @@ void start_garbage_collector(int32_t debug)
 	int32_t ret = start_thread("garbage", (void *)&garbage_collector, NULL, &garbage_thread, 0, 1);
 	if(ret)
 	{
-		cs_exit(1);
+		cs_log("WARNING: garbage collector thread failed to start (ret=%d)", ret);
 	}
 }
 

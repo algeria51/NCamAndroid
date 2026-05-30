@@ -1,7 +1,10 @@
 package com.ncam.app
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -52,7 +55,13 @@ class MainActivity : AppCompatActivity() {
         scrollLog      = findViewById(R.id.scrollLog)
         btnClearLog    = findViewById(R.id.btnClearLog)
 
-        tvStatus.text = "NCam v${NCamJNI.getVersion()}"
+        // Wrap in try/catch — if the .so failed to load this would crash otherwise
+        tvStatus.text = try {
+            "NCam v${NCamJNI.getVersion()}"
+        } catch (e: Throwable) {
+            Log.e(TAG, "getVersion failed", e)
+            "NCam"
+        }
 
         tabControl.setOnClickListener { showTab(0) }
         tabConsole.setOnClickListener { showTab(1) }
@@ -78,6 +87,14 @@ class MainActivity : AppCompatActivity() {
         btnClearLog.setOnClickListener {
             logBuffer.clear()
             tvLog.text = ""
+        }
+
+        // Request POST_NOTIFICATIONS on Android 13+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), REQ_NOTIF)
+            }
         }
 
         showTab(0)
@@ -106,14 +123,17 @@ class MainActivity : AppCompatActivity() {
     private fun startLogcatCapture() {
         Thread {
             try {
+                // Clear stale logs first, then stream new ones
+                Runtime.getRuntime().exec(arrayOf("logcat", "-c")).waitFor()
                 logcatProcess = Runtime.getRuntime().exec(
-                    arrayOf("logcat", "-v", "time", "-s", "NCam:*", "NCam-JNI:*", "NCamService:*")
+                    arrayOf("logcat", "-v", "time", "-s",
+                        "NCam:*", "NCam-JNI:*", "NCamService:*", "NCamJNI:*")
                 )
                 logcatProcess!!.inputStream.bufferedReader().forEachLine { line ->
                     appendLog(line)
                 }
             } catch (e: Exception) {
-                Log.e("MainActivity", "logcat error", e)
+                Log.e(TAG, "logcat error", e)
             }
         }.also { it.isDaemon = true }.start()
     }
@@ -130,8 +150,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getConfigDir(): File = File(filesDir, "ncam")
-
-    private fun getHttpPort(): Int = NCamService.readHttpPort(getConfigDir())
+    private fun getHttpPort(): Int  = NCamService.readHttpPort(getConfigDir())
 
     private fun getDeviceIp(): String {
         try {
@@ -144,11 +163,11 @@ class MainActivity : AppCompatActivity() {
                     val addr = addrs.nextElement()
                     if (addr.isLoopbackAddress) continue
                     val host = addr.hostAddress ?: continue
-                    if (!host.contains(':')) return host
+                    if (!host.contains(':')) return host  // skip IPv6
                 }
             }
         } catch (e: Exception) {
-            Log.e("MainActivity", "getDeviceIp", e)
+            Log.e(TAG, "getDeviceIp failed", e)
         }
         return "127.0.0.1"
     }
@@ -161,5 +180,10 @@ class MainActivity : AppCompatActivity() {
         btnOpenBrowser.isEnabled = running
         tvStatus.text = if (running) "Status: Running" else "Status: Stopped"
         tvUrl.text    = if (running) "WebIF: ${getWebifUrl()}" else ""
+    }
+
+    companion object {
+        private const val TAG      = "MainActivity"
+        private const val REQ_NOTIF = 1001
     }
 }

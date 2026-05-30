@@ -346,8 +346,8 @@ void init_first_client(void)
 
 	if(!cs_malloc(&first_client, sizeof(struct s_client)))
 	{
-		fprintf(stderr, "Could not allocate memory for master client, exiting...");
-		exit(1);
+		fprintf(stderr, "Could not allocate memory for master client, exiting...\n");
+		return;
 	}
 
 	memset(first_client_hashed, 0, sizeof(first_client_hashed));
@@ -363,15 +363,15 @@ void init_first_client(void)
 	struct s_auth *null_account;
 	if(!cs_malloc(&null_account, sizeof(struct s_auth)))
 	{
-		fprintf(stderr, "Could not allocate memory for master account, exiting...");
-		exit(1);
+		fprintf(stderr, "Could not allocate memory for master account, exiting...\n");
+		return;
 	}
 
 	first_client->account = null_account;
 	if(pthread_setspecific(getclient, first_client))
 	{
-		fprintf(stderr, "Could not setspecific getclient in master process, exiting...");
-		exit(1);
+		fprintf(stderr, "Could not setspecific getclient in master process, exiting...\n");
+		return;
 	}
 }
 

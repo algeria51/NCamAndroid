@@ -108,7 +108,11 @@ uint8_t cs_http_use_utf8 = 0;
 #endif
 static int8_t cs_capture_SEGV;
 static int8_t cs_dump_stack;
+#ifdef __ANDROID__
+static uint16_t cs_waittime = 0; /* Android: don't wait for time sync */
+#else
 static uint16_t cs_waittime = 60;
+#endif
 char cs_tmpdir[200] = {0x00};
 CS_MUTEX_LOCK system_lock;
 CS_MUTEX_LOCK config_lock;
@@ -368,7 +372,7 @@ static void parse_cmdline_params(int argc, char **argv)
 static void write_versionfile(bool use_stdout)
 {
 #ifdef WITH_SIGNING
-	if(!init_signing_info(prog_name)) cs_exit_ncam();
+	/* init_signing_info disabled on Android */
 #endif
 	FILE *fp = stdout;
 	if(!use_stdout)
@@ -606,43 +610,8 @@ static void do_report_emm_support(void)
 }
 #undef report_emm_support
 
-#ifdef NEED_DAEMON
-// The compat function is not called daemon() because this may cause problems.
-static int32_t do_daemon(int32_t nochdir, int32_t noclose)
-{
-	int32_t fd;
-
-	switch(fork())
-	{
-	case -1:
-		return (-1);
-	case 0:
-		break;
-	default:
-		_exit(0);
-	}
-
-	if(setsid() == (-1))
-		{ return (-1); }
-
-	if(!nochdir)
-		{ (void)chdir("/"); }
-
-	if(!noclose && (fd = open("/dev/null", O_RDWR, 0)) != -1)
-	{
-		(void)dup2(fd, STDIN_FILENO);
-		(void)dup2(fd, STDOUT_FILENO);
-		(void)dup2(fd, STDERR_FILENO);
-		if(fd > 2)
-			{ (void)close(fd); }
-	}
-	return (0);
-}
-#else
-#ifndef do_daemon
-#define do_daemon daemon
-#endif
-#endif
+/* do_daemon removed for Android - foreground mode only */
+static int32_t do_daemon(int32_t nochdir, int32_t noclose) { (void)nochdir; (void)noclose; return 0; }
 
 /*
  * flags: 1 = restart, 2 = don't modify if SIG_IGN, may be combined
@@ -1547,55 +1516,9 @@ static void fwd_sig(int32_t sig)
 
 static void restart_daemon(void)
 {
-	while(1)
-	{
-		// start client process:
-		pid = fork();
-		if(!pid)
-			{ return; } // client process=ncam process
-		if(pid < 0)
-			{ exit(1); }
+	/* restart_daemon disabled on Android */
+	return;
 
-		// set signal handler for the restart daemon:
-		set_signal_handler(SIGINT, 3, fwd_sig);
-#if defined(__APPLE__)
-		set_signal_handler(SIGEMT, 3, fwd_sig);
-#endif
-		set_signal_handler(SIGTERM, 3, fwd_sig);
-		set_signal_handler(SIGQUIT, 0, fwd_sig);
-		set_signal_handler(SIGHUP , 0, fwd_sig);
-		set_signal_handler(SIGUSR1, 0, fwd_sig);
-		set_signal_handler(SIGUSR2, 0, fwd_sig);
-		set_signal_handler(SIGALRM , 0, fwd_sig);
-		set_signal_handler(SIGWINCH, 1, SIG_IGN);
-		set_signal_handler(SIGPIPE , 0, SIG_IGN);
-		set_signal_handler(NCAM_SIGNAL_WAKEUP, 0, SIG_IGN);
-
-		// restart control process:
-		int32_t res = 0;
-		int32_t status = 0;
-		do
-		{
-			res = waitpid(pid, &status, 0);
-			if(res == -1)
-			{
-				if(errno != EINTR)
-					{ exit(1); }
-			}
-		}
-		while(res != pid);
-
-		if(cs_restart_mode == 2 && WIFSIGNALED(status) && WTERMSIG(status) == SIGSEGV)
-			{ status = 99; } // restart on segfault!
-		else
-			{ status = WEXITSTATUS(status); }
-
-		// status=99 restart ncam, all other->terminate
-		if(status != 99)
-		{
-			exit(status);
-		}
-	}
 }
 
 void cs_restart_ncam(void)
@@ -1896,18 +1819,11 @@ int32_t main(int32_t argc, char *argv[])
 
 	parse_cmdline_params(argc, argv);
 
-	if(bg && do_daemon(1, 0))
-	{
-		printf("Error starting in background (errno=%d: %s)", errno, strerror(errno));
-		cs_exit(1);
-	}
+	/* bg/daemon mode disabled on Android */
 
 	get_random_bytes_init();
 
-#ifdef WEBIF
-	if(cs_restart_mode)
-		{ restart_daemon(); }
-#endif
+/* restart_daemon disabled on Android */
 
 	memset(&cfg, 0, sizeof(struct s_config));
 	cfg.max_pending = max_pending;

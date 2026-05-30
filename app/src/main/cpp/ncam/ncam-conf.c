@@ -474,9 +474,7 @@ static FILE *__open_config_file(const char *conf_filename, bool die_on_err)
 	{
 		if(die_on_err)
 		{
-			fprintf(stderr, "ERROR: Cannot open file \"%s\" (errno=%d %s)", filename, errno, strerror(errno));
-			fprintf(stderr, "\n");
-			exit(1);
+			fprintf(stderr, "ERROR: Cannot open file \"%s\" (errno=%d %s)\n", filename, errno, strerror(errno));
 		}
 		else
 		{

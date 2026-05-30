@@ -4,6 +4,12 @@
 build/
 app/build/
 local.properties
+
+# APK/AAB outputs
 *.apk
 *.aab
+
+# Keystore — do NOT commit to git.
+# Store as GitHub Secret: KEYSTORE_BASE64 (base64 encoded)
+# See .github/workflows/build.yml for setup instructions.
 *.keystore

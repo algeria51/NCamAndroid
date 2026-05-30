@@ -28,6 +28,15 @@ android {
         }
     }
 
+    signingConfigs {
+        release {
+            storeFile     file("../ncam-release.keystore")
+            storePassword "ncam1234"
+            keyAlias      "ncam"
+            keyPassword   "ncam1234"
+        }
+    }
+
     externalNativeBuild {
         cmake {
             path   "src/main/cpp/CMakeLists.txt"
@@ -38,9 +47,11 @@ android {
     buildTypes {
         release {
             minifyEnabled false
+            signingConfig signingConfigs.release
         }
         debug {
             jniDebuggable true
+            signingConfig signingConfigs.release
         }
     }
 

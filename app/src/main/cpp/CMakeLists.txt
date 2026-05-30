@@ -13,7 +13,7 @@ add_compile_definitions(
     __ANDROID__=1
     ANDROID_BUILD=1
     "CS_BUILD_DATE=\"${CS_BUILD_DATE}\""
-    CS_CONFDIR="/data/data/com.ncam.app/files"
+    CS_CONFDIR="/data/data/com.ncam.app/files/ncam"
     HAVE_DVBAPI=0
     WITH_CARDREADER=0
     MODULE_SERIAL=0
@@ -53,6 +53,7 @@ add_compile_definitions(
     READER_STREAMGUARD=1
     READER_JET=1
     READER_TONGFANG=1
+    NEED_DAEMON=1
 )
 
 include_directories(
@@ -70,8 +71,7 @@ file(GLOB NCAM_CORE    ${NCAM_SRC}/ncam*.c)
 file(GLOB NCAM_MODULES ${NCAM_SRC}/module-*.c)
 file(GLOB NCAM_READERS ${NCAM_SRC}/reader-*.c)
 file(GLOB NCAM_CSCRYPT ${NCAM_SRC}/cscrypt/*.c)
-file(GLOB NCAM_TOMMY   ${NCAM_SRC}/tommyDS_hashlin/*.c)
-file(GLOB NCAM_CSCTAPI ${NCAM_SRC}/csctapi/*.c)
+file(GLOB NCAM_TOMMY   ${NCAM_SRC}/tommyDS_hashlin/*.c)file(GLOB NCAM_CSCTAPI ${NCAM_SRC}/csctapi/*.c)
 
 set(NCAM_EXTRA
     ${NCAM_SRC}/cardlist.c
@@ -105,6 +105,7 @@ add_library(ncam SHARED
     ${NCAM_READERS}
     ${NCAM_CSCTAPI}
     ${NCAM_CSCRYPT}
+    ${NCAM_TOMMY}
     ${NCAM_EXTRA}
 )
 

@@ -46,6 +46,12 @@ class NCamService : Service(), NCamJNI.Callback {
         when (intent?.action) {
             ACTION_START -> startNcam()
             ACTION_STOP  -> stopNcam()
+            // null = service restarted by START_STICKY after being killed
+            null -> {
+                Log.i(TAG, "Restarted by system (START_STICKY)")
+                if (!NCamJNI.isRunning()) startNcam()
+                else startForeground(NOTIF_ID, buildNotification("NCam running"))
+            }
         }
         return START_STICKY
     }
@@ -53,43 +59,66 @@ class NCamService : Service(), NCamJNI.Callback {
     private fun startNcam() {
         if (NCamJNI.isRunning()) {
             Log.i(TAG, "Already running")
+            startForeground(NOTIF_ID, buildNotification("NCam running"))
             return
         }
+
         val configDir = File(filesDir, "ncam").also { it.mkdirs() }
+        // tmp dir inside confdir — passed as -t arg in jni_bridge
+        File(configDir, "tmp").mkdirs()
+
         copyDefaultConfigsIfNeeded(configDir)
         val port = readHttpPort(configDir)
-        startForeground(NOTIF_ID, buildNotification("NCam running on port $port"))
+
+        startForeground(NOTIF_ID, buildNotification("NCam starting on port $port"))
+        Log.i(TAG, "Starting NCam in ${configDir.absolutePath}")
+
         val rc = NCamJNI.startNCam(configDir.absolutePath, this)
         if (rc != 0) {
-            Log.e(TAG, "startNCam returned $rc")
+            Log.e(TAG, "startNCam() returned $rc — stopping service")
+            stopForegroundCompat()
             stopSelf()
         }
     }
 
     private fun stopNcam() {
+        Log.i(TAG, "Stopping NCam")
         NCamJNI.stopNCam()
-        if (Build.VERSION.SDK_INT >= 24) stopForeground(STOP_FOREGROUND_REMOVE)
-        else @Suppress("DEPRECATION") stopForeground(true)
+        stopForegroundCompat()
         stopSelf()
     }
 
     override fun onNcamStopped(exitCode: Int) {
-        Log.i(TAG, "NCam stopped, exit=$exitCode")
-        if (Build.VERSION.SDK_INT >= 24) stopForeground(STOP_FOREGROUND_REMOVE)
-        else @Suppress("DEPRECATION") stopForeground(true)
+        Log.i(TAG, "NCam stopped naturally, exit=$exitCode")
+        stopForegroundCompat()
         stopSelf()
     }
 
     override fun onDestroy() {
-        if (NCamJNI.isRunning()) NCamJNI.stopNCam()
+        if (NCamJNI.isRunning()) {
+            Log.i(TAG, "onDestroy: requesting NCam stop")
+            NCamJNI.stopNCam()
+        }
         super.onDestroy()
+    }
+
+    private fun stopForegroundCompat() {
+        if (Build.VERSION.SDK_INT >= 24)
+            stopForeground(STOP_FOREGROUND_REMOVE)
+        else
+            @Suppress("DEPRECATION") stopForeground(true)
     }
 
     private fun copyDefaultConfigsIfNeeded(dir: File) {
         val conf = File(dir, "ncam.conf")
         if (!conf.exists()) {
-            assets.open("ncam.conf").use { input ->
-                conf.outputStream().use { input.copyTo(it) }
+            try {
+                assets.open("ncam.conf").use { input ->
+                    conf.outputStream().use { input.copyTo(it) }
+                }
+                Log.i(TAG, "Copied default ncam.conf to ${conf.absolutePath}")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to copy default ncam.conf", e)
             }
         }
     }

@@ -518,8 +518,8 @@ int32_t recv_from_udpipe(uint8_t *buf)
 	uint16_t n;
 	if(buf[0] != 'U')
 	{
-		cs_log("INTERNAL PIPE-ERROR");
-		cs_exit(1);
+		cs_log("INTERNAL PIPE-ERROR - ignoring on Android");
+		return 0;
 	}
 	memcpy(&n, buf + 1, 2);
 	memmove(buf, buf + 3, n);

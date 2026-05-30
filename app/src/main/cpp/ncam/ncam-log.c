@@ -150,6 +150,9 @@ static void cs_write_log(char *txt, int8_t do_flush, uint8_t hdr_date_offset, ui
 				fputs(txt + hdr_time_offset, stdout);
 				if(do_flush) { fflush(stdout); }
 			}
+#ifdef __ANDROID__
+			__android_log_print(ANDROID_LOG_DEBUG, "NCam", "%s", txt + hdr_time_offset);
+#endif
 		}
 	}
 }
